@@ -55,29 +55,131 @@ class Tree {
     };
 
     // deletes value
-    deleteItem(value, root = this.root) {
-        // empty tree
-        if (!root) return console.log('Empty tree -- nothing to delete.');
-
-        // traverse down tree
-        if (value < root.value) {
-            return this.deleteItem(value, root.leftChild)
-        } else if (value > root.value) {
-            return this.deleteItem(value, root.rightChild)
-        }
-
-        // case 1: delete leaf 
-        if(value == root.value && !root.leftChild && !root.rightChild) {
-            console.log('test success')
-            // GETTING TO THIS POINT, BUT NOT DELETING NODE
-            return null
-        }
-        // case 2: delete node w/ 1 child
-        // case 3: delete node w/ 2 children
-        // value does not exist
+    delete(value) {
+        const deleteNode = function(node, value){
+            // empty tree
+            if(node === null) {
+                return null;
+            }
+            if (value == node.value) {
+                // no children
+                if (node.leftChild == null && node.rightChild == null) {
+                    return null;
+                }
+                // 1 child -- no left child
+                if (node.leftChild == null) {
+                    return node.rightChild;
+                }
+                // 1 child -- no right child
+                if (node.rightChild == null) {
+                    return node.leftChild;
+                }
+                // 2 children
+                let tempNode = node.rightChild;
+                while (tempNode.leftChild != null) {
+                    tempNode = tempNode.leftChild;
+                };
+                node.value = tempNode.value;
+                node.rightChild = deleteNode(node.rightChild, tempNode.value);
+                return node;
+            } else if (value < node.value) {
+                node.leftChild = deleteNode(node.leftChild, value);
+                return node;
+            }  else {
+                node.rightChild = deleteNode(node.rightChild, value);
+                return node;
+            };
+        };
+        this.root = deleteNode(this.root, value);
     }
 
+    // finds node with given value
+    find(value, current = this.root) {
+        if (!current) return 'Value does not exist.';
+
+        if (current.value === value) return current;
+        else if (value < current.value) {
+            return this.find(value, current.leftChild);
+        } else if (value > current.value) {
+            return this.find(value, current.rightChild);
+        };
+    }
+
+    // // finds parent of value
+    // findParent(value, current = this.root) {
+    //     if (!current) return null;
+
+    //     if (current.leftChild && current.leftChild.value === value) return current;
+    //     else if (current.rightChild && current.rightChild.value === value) return current;
+    //     else {
+    //         if (value < current.value) {
+    //             return this.findParent(value, current.leftChild);
+    //         } else if (value > current.value) {
+    //             return this.findParent(value, current.rightChild);
+    //         };
+    //     };
+    // }
+
+    // calls callback on each node using breadth-first traversal method
+    levelOrder(callback, current = this.root) {
+        if(!callback) throw new Error('Callback function required.');
+        if(!current) return;
+        
+        let queue = [current];
+        while (queue.length > 0) {
+            const node = queue.shift();
+            callback(node)
+            // node.value = callback(node.value);
+
+            if(node.leftChild) queue.push(node.leftChild);
+            if(node.rightChild) queue.push(node.rightChild);
+        };
+    }
+
+    // calls callback on each node using depth-first traversal method given
+    // (left, current, right)
+    inOrder(callback, current = this.root) {
+        if(!callback) throw new Error('Callback function required.');
+        if(!current) return;
+
+        this.inOrder(callback, current.leftChild);
+        callback(current);
+        this.inOrder(callback, current.rightChild);      
+    }
+
+    // calls callback on each node using depth-first traversal method given
+    // (current, left, right)
+    preOrder(callback, current = this.root) {
+        if(!callback) throw new Error('Callback function required.');
+        if(!current) return;
+
+        callback(current);
+        this.preOrder(callback, current.leftChild);
+        this.preOrder(callback, current.rightChild);
+    }
+
+    // calls callback on each node using depth-first traversal method given
+    // (left, right, current)
+    postOrder(callback, current = this.root) {
+        if(!callback) throw new Error('Callback function required.');
+        if(!current) return;
+
+        this.postOrder(callback, current.leftChild);
+        this.postOrder(callback, current.rightChild);
+        callback(current);
+    }
+
+    // returns number of edges in longest path from given node to a leaf
+    height(node) {
+        if(!node) return 0;
+
+        let leftHeight = this.height(node.leftChild);
+        let rightHeight = this.height(node.rightChild);
+        return Math.max(leftHeight, rightHeight) + 1;
+    }
 }
+
+
 
 // prints tree visual (given by TOD)
 function prettyPrint (node, prefix = "", isLeft = true) {
