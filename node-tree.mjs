@@ -170,15 +170,44 @@ class Tree {
     }
 
     // returns number of edges in longest path from given node to a leaf
-    height(node) {
-        if(!node) return 0;
+    height(value, node = this.find(value)) {
+        if(node == 'Value does not exist.' || !node) return -1;
 
-        let leftHeight = this.height(node.leftChild);
-        let rightHeight = this.height(node.rightChild);
+        let leftHeight = this.height(value, node.leftChild);
+        let rightHeight = this.height(value, node.rightChild);
         return Math.max(leftHeight, rightHeight) + 1;
     }
-}
 
+    // returns number of edges from given node to tree's root
+    depth(value, node = this.root, depth = 0) {
+        if(this.find(value) == 'Value does not exist.') return 'Value does not exist';
+        if(value === node.value) return depth;
+
+        if(value < node.value) return this.depth(value, node.leftChild, depth + 1);
+        if(value > node.value) return this.depth(value, node.rightChild, depth + 1);
+    }
+
+    // checks if tree is balanced
+    isBalanced() {
+        if(!this.root.leftChild && !this.root.rightChild) return true
+        console.log('left', this.height(this.root.leftChild.value), 'right', this.height(this.root.rightChild.value))
+        if (Math.abs(this.height(this.root.leftChild.value) - this.height(this.root.rightChild.value)) <= 1) return true
+        return false
+    }
+
+    rebalance() {
+        if(this.isBalanced() === true) return 'Tree is already balanced.';
+
+        let allValues = [];
+
+        const getValues = (x) => {
+            allValues.push(x.value)
+        };
+
+        this.inOrder(getValues);
+        this.root = this.buildTree(allValues);
+    }
+}
 
 
 // prints tree visual (given by TOD)
